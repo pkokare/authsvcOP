@@ -1,0 +1,3907 @@
+{
+	"info": {
+		"_postman_id": "aa53d247-c872-40be-8b5c-7f47bf55ea78",
+		"name": "authsvc.automatedcollection OP",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "0. swagger",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"try",
+							"{",
+							"if (responseCode.code === 200)",
+							"{",
+							"var response = JSON.parse(responseBody);",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"tests[\"Fetch well known endpoint\"] = data.paths = responseBody.has(\"/as/v1/.well-known/openid-configuration\");",
+							"tests[\"Get OAuth clients\"] = data.paths = responseBody.has(\"/as/v1/api/admin/clients\");",
+							"tests[\"Delete OAuth client\"] = data.paths = responseBody.has(\"/as/v1/api/admin/clients/deleteclient/{client_id}\");",
+							"tests[\"Get OAuth Client by client id\"] = data.paths = responseBody.has(\"/as/v1/api/admin/clients/{client_id}\");",
+							"tests[\"Clean up expired otp,clients and jwk keys\"] = data.paths = responseBody.has(\"/as/v1/api/cleanup\");",
+							"tests[\"Register client\"] = data.paths = responseBody.has(\"/as/v1/api/clients/{client_type}\");",
+							"tests[\"Get all the clients for the given service type\"] = data.paths = responseBody.has(\"/as/v1/api/clients/{servicetype}\");",
+							"tests[\"Delete OAuth Client for the given service type\"] = data.paths = responseBody.has(\"/as/v1/api/clients/{servicetype}/deleteclient/{client_id}\");",
+							"tests[\"Get OAuth Client by client id and service type\"] = data.paths = responseBody.has(\"/as/v1/api/clients/{servicetype}/{client_id}\");",
+							"tests[\"http delete to delete client for the given service type and client id\"] = data.paths = responseBody.has(\"httpDeleteClientByServiceTypeAndClientIdUsingDELETE\");",
+							"tests[\"Rotate jwk\"] = data.paths = responseBody.has(\"/as/v1/api/rotatejwk\");",
+							"tests[\"Exchange otp\"] = data.paths = responseBody.has(\"/as/v1/exchangeotp\");",
+							"tests[\"Fetch all active public keys\"] = data.paths = responseBody.has(\"/as/v1/jwk\");",
+							"tests[ \"Get new access token\"] = data.paths = responseBody.has(\"/as/v1/token\");",
+							"tests[ \"DS - Get the service by service type\"] = data.paths = responseBody.has(\"/ds/v1/api/services/{servicetype}\",\"getServiceInstanceByTypeUsingGET\");",
+							"tests[ \"DS - Registers the service based on the service type passed.\"] = data.paths = responseBody.has(\"registerServiceUsingPOST\");",
+							"tests[ \"DS - Get all the service which the discovery service is aware of\"] = data.paths = responseBody.has(\"/ds/v1/endpoints\");",
+							"}",
+							"}",
+							"catch(e)",
+							"{",
+							"    console.log(\"Failed to get the wellknown endpoint details\" + e);",
+							"}",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{albURL}}/authorizationserver/v2/api-docs",
+					"host": [
+						"{{albURL}}"
+					],
+					"path": [
+						"authorizationserver",
+						"v2",
+						"api-docs"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "1. WELL KNOWN",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"try",
+							"{",
+							"    if (responseCode.code === 200)",
+							"{",
+							"var response = JSON.parse(responseBody);",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"tests[\"Body contains issuer\"]  = responseBody.has(\"issuer\");",
+							"tests[\"Body contains token_endpoint\"] = responseBody.has(\"token_endpoint\");",
+							"tests[\"Body contains jwks_url\"] = responseBody.has(\"jwks_uri\");",
+							"tests[\"Body contains token_endpoint_auth_signing_alg_values_supported\"] = responseBody.has(\"token_endpoint_auth_signing_alg_values_supported\");",
+							"tests[\"Body contains infor_otp_exchange_endpoint\"] = responseBody.has(\"infor_otp_exchange_endpoint\");",
+							"tests[\"Body contains infor_client_registration_endpoint\"] = responseBody.has(\"infor_client_registration_endpoint\");",
+							"}",
+							"}",
+							"catch(e)",
+							"{",
+							"    console.log(\"Failed to execute well known endpoint\" + e);",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{albURL}}/authorizationserver/as/v1/.well-known/openid-configuration/",
+					"host": [
+						"{{albURL}}"
+					],
+					"path": [
+						"authorizationserver",
+						"as",
+						"v1",
+						".well-known",
+						"openid-configuration",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "2. Client-1 registration endpoint",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "3e3c8adf-9624-436c-98b9-7630cb660fd9",
+						"type": "text/javascript",
+						"exec": [
+							"try",
+							"{",
+							"    if (responseCode.code === 200)",
+							"{",
+							"var data = JSON.parse(responseBody);",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"tests[\"Body contains client_id\"] = responseBody.has(\"client_id\");",
+							"tests[\"Body contains client_secret\"] = responseBody.has(\"client_secret\");",
+							"tests[\"client_id is not null\"] = data.client_id !== (null);",
+							"tests[\"client_secret is not null\"] = data.client_secret !== (null);",
+							"pm.environment.set(\"client_Id1\", data.client_id);",
+							"pm.environment.set(\"client_Secret1\", data.client_secret);",
+							"console.log(\"Client 1 registration details\" + responseBody);",
+							"}",
+							"}",
+							"catch(e)",
+							"{",
+							"    console.log(\"Failed to execute client registration endpoint\" + e);",
+							"}",
+							"",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "oauth1",
+					"oauth1": [
+						{
+							"key": "consumerSecret",
+							"value": "{{secretkey}}",
+							"type": "string"
+						},
+						{
+							"key": "consumerKey",
+							"value": "{{accesskey}}",
+							"type": "string"
+						},
+						{
+							"key": "token",
+							"value": "",
+							"type": "string"
+						},
+						{
+							"key": "addParamsToHeader",
+							"value": true,
+							"type": "boolean"
+						},
+						{
+							"key": "addEmptyParamsToSign",
+							"value": false,
+							"type": "boolean"
+						},
+						{
+							"key": "signatureMethod",
+							"value": "HMAC-SHA1",
+							"type": "string"
+						},
+						{
+							"key": "version",
+							"value": "1.0",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{albURL}}/authorizationserver/as/v1/api/clients/{{clientType}}",
+					"host": [
+						"{{albURL}}"
+					],
+					"path": [
+						"authorizationserver",
+						"as",
+						"v1",
+						"api",
+						"clients",
+						"{{clientType}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "2.1.Client Registration with Invalid Credentials",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "5fb94ace-15d9-4b9f-8d4b-cacafeaf56bc",
+						"type": "text/javascript",
+						"exec": [
+							"try",
+							"{",
+							"   tests[\"status code is not 200\"] = responseCode.code !== 200;",
+							"}",
+							"catch(e)",
+							"{",
+							"    console.log(\"Failed to execute client registration endpoint\" + e);",
+							"}",
+							"",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "oauth1",
+					"oauth1": [
+						{
+							"key": "consumerSecret",
+							"value": "{{secretkey}}1",
+							"type": "string"
+						},
+						{
+							"key": "consumerKey",
+							"value": "{{accesskey}}",
+							"type": "string"
+						},
+						{
+							"key": "token",
+							"value": "",
+							"type": "string"
+						},
+						{
+							"key": "addParamsToHeader",
+							"value": true,
+							"type": "boolean"
+						},
+						{
+							"key": "addEmptyParamsToSign",
+							"value": false,
+							"type": "boolean"
+						},
+						{
+							"key": "signatureMethod",
+							"value": "HMAC-SHA1",
+							"type": "string"
+						},
+						{
+							"key": "version",
+							"value": "1.0",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{albURL}}/authorizationserver/as/v1/api/clients/{{clientType}}",
+					"host": [
+						"{{albURL}}"
+					],
+					"path": [
+						"authorizationserver",
+						"as",
+						"v1",
+						"api",
+						"clients",
+						"{{clientType}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "3. Client-2 registration endpoint",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"try",
+							"{",
+							"    if (responseCode.code === 200)",
+							"{",
+							"var data = JSON.parse(responseBody);",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"tests[\"Body contains client_id\"] = responseBody.has(\"client_id\");",
+							"tests[\"Body contains client_secret\"] = responseBody.has(\"client_secret\");",
+							"tests[\"client_id is not null\"] = data.client_id !== (null);",
+							"tests[\"client_secret is not null\"] = data.client_secret !== (null);",
+							"pm.environment.set(\"client_Id2\", data.client_id);",
+							"pm.environment.set(\"client_Secret2\", data.client_secret);",
+							"console.log(\"Client 2 registration details\" + responseBody);",
+							"}",
+							"}",
+							"catch(e)",
+							"{",
+							"    console.log(\"Failed to execute client registration endpoint\" + e);",
+							"}",
+							"",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "oauth1",
+					"oauth1": [
+						{
+							"key": "consumerSecret",
+							"value": "{{secretkey}}",
+							"type": "string"
+						},
+						{
+							"key": "consumerKey",
+							"value": "{{accesskey}}",
+							"type": "string"
+						},
+						{
+							"key": "token",
+							"value": "",
+							"type": "string"
+						},
+						{
+							"key": "addParamsToHeader",
+							"value": true,
+							"type": "boolean"
+						},
+						{
+							"key": "addEmptyParamsToSign",
+							"value": false,
+							"type": "boolean"
+						},
+						{
+							"key": "signatureMethod",
+							"value": "HMAC-SHA1",
+							"type": "string"
+						},
+						{
+							"key": "version",
+							"value": "1.0",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{albURL}}/authorizationserver/as/v1/api/clients/{{clientType}}",
+					"host": [
+						"{{albURL}}"
+					],
+					"path": [
+						"authorizationserver",
+						"as",
+						"v1",
+						"api",
+						"clients",
+						"{{clientType}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "4. Client-3 registration endpoint",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"try",
+							"{",
+							"    if (responseCode.code === 200)",
+							"{",
+							"var data = JSON.parse(responseBody);",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"tests[\"Body contains client_id\"] = responseBody.has(\"client_id\");",
+							"tests[\"Body contains client_secret\"] = responseBody.has(\"client_secret\");",
+							"tests[\"client_id is not null\"] = data.client_id !== (null);",
+							"tests[\"client_secret is not null\"] = data.client_secret !== (null);",
+							"pm.environment.set(\"client_Id3\", data.client_id);",
+							"pm.environment.set(\"client_Secret3\", data.client_secret);",
+							"console.log(\"Client 3 registration details\" + responseBody);",
+							"}",
+							"}",
+							"catch(e)",
+							"{",
+							"    console.log(\"Failed to execute client registration endpoint\" + e);",
+							"}",
+							"",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "oauth1",
+					"oauth1": [
+						{
+							"key": "consumerSecret",
+							"value": "{{secretkey}}",
+							"type": "string"
+						},
+						{
+							"key": "consumerKey",
+							"value": "{{accesskey}}",
+							"type": "string"
+						},
+						{
+							"key": "token",
+							"value": "",
+							"type": "string"
+						},
+						{
+							"key": "addParamsToHeader",
+							"value": true,
+							"type": "boolean"
+						},
+						{
+							"key": "addEmptyParamsToSign",
+							"value": false,
+							"type": "boolean"
+						},
+						{
+							"key": "signatureMethod",
+							"value": "HMAC-SHA1",
+							"type": "string"
+						},
+						{
+							"key": "version",
+							"value": "1.0",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{albURL}}/authorizationserver/as/v1/api/clients/{{clientType}}",
+					"host": [
+						"{{albURL}}"
+					],
+					"path": [
+						"authorizationserver",
+						"as",
+						"v1",
+						"api",
+						"clients",
+						"{{clientType}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "5. Client-4 registration endpoint",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"try",
+							"{",
+							"    if (responseCode.code === 200)",
+							"{",
+							"var data = JSON.parse(responseBody);",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"tests[\"Body contains client_id\"] = responseBody.has(\"client_id\");",
+							"tests[\"Body contains client_secret\"] = responseBody.has(\"client_secret\");",
+							"tests[\"client_id is not null\"] = data.client_id !== (null);",
+							"tests[\"client_secret is not null\"] = data.client_secret !== (null);",
+							"pm.environment.set(\"client_Id4\", data.client_id);",
+							"pm.environment.set(\"client_Secret4\", data.client_secret);",
+							"console.log(\"Client 4 registration details\" + responseBody);",
+							"}",
+							"}",
+							"catch(e)",
+							"{",
+							"    console.log(\"Failed to execute client registration endpoint\" + e);",
+							"}",
+							"",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "oauth1",
+					"oauth1": [
+						{
+							"key": "consumerSecret",
+							"value": "{{secretkey}}",
+							"type": "string"
+						},
+						{
+							"key": "consumerKey",
+							"value": "{{accesskey}}",
+							"type": "string"
+						},
+						{
+							"key": "token",
+							"value": "",
+							"type": "string"
+						},
+						{
+							"key": "addParamsToHeader",
+							"value": true,
+							"type": "boolean"
+						},
+						{
+							"key": "addEmptyParamsToSign",
+							"value": false,
+							"type": "boolean"
+						},
+						{
+							"key": "signatureMethod",
+							"value": "HMAC-SHA1",
+							"type": "string"
+						},
+						{
+							"key": "version",
+							"value": "1.0",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{albURL}}/authorizationserver/as/v1/api/clients/{{clientType}}",
+					"host": [
+						"{{albURL}}"
+					],
+					"path": [
+						"authorizationserver",
+						"as",
+						"v1",
+						"api",
+						"clients",
+						"{{clientType}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "6. Client-5 registration endpoint",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "86018421-0972-4133-955e-6507512ee333",
+						"type": "text/javascript",
+						"exec": [
+							"try",
+							"{",
+							"    if (responseCode.code === 200)",
+							"{",
+							"var data = JSON.parse(responseBody);",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"tests[\"Body contains client_id\"] = responseBody.has(\"client_id\");",
+							"tests[\"Body contains client_secret\"] = responseBody.has(\"client_secret\");",
+							"tests[\"client_id is not null\"] = data.client_id !== (null);",
+							"tests[\"client_secret is not null\"] = data.client_secret !== (null);",
+							"pm.environment.set(\"client_Id5\", data.client_id);",
+							"pm.environment.set(\"client_Secret5\", data.client_secret);",
+							"console.log(\"Client 5 registration details\" + responseBody);",
+							"}",
+							"}",
+							"catch(e)",
+							"{",
+							"    console.log(\"Failed to execute client registration endpoint\" + e);",
+							"}",
+							"",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "oauth1",
+					"oauth1": [
+						{
+							"key": "consumerSecret",
+							"value": "{{secretkey}}",
+							"type": "string"
+						},
+						{
+							"key": "consumerKey",
+							"value": "{{accesskey}}",
+							"type": "string"
+						},
+						{
+							"key": "token",
+							"value": "",
+							"type": "string"
+						},
+						{
+							"key": "addParamsToHeader",
+							"value": true,
+							"type": "boolean"
+						},
+						{
+							"key": "addEmptyParamsToSign",
+							"value": false,
+							"type": "boolean"
+						},
+						{
+							"key": "signatureMethod",
+							"value": "HMAC-SHA1",
+							"type": "string"
+						},
+						{
+							"key": "version",
+							"value": "1.0",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{albURL}}/authorizationserver/as/v1/api/clients/{{clientType}}",
+					"host": [
+						"{{albURL}}"
+					],
+					"path": [
+						"authorizationserver",
+						"as",
+						"v1",
+						"api",
+						"clients",
+						"{{clientType}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "7. Client-6 registration endpoint",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "13274f4d-b3fe-440d-bd67-06d8badee198",
+						"type": "text/javascript",
+						"exec": [
+							"try",
+							"{",
+							"    if (responseCode.code === 200)",
+							"{",
+							"var data = JSON.parse(responseBody);",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"tests[\"Body contains client_id\"] = responseBody.has(\"client_id\");",
+							"tests[\"Body contains client_secret\"] = responseBody.has(\"client_secret\");",
+							"tests[\"client_id is not null\"] = data.client_id !== (null);",
+							"tests[\"client_secret is not null\"] = data.client_secret !== (null);",
+							"pm.environment.set(\"client_Id6\", data.client_id);",
+							"pm.environment.set(\"client_Secret6\", data.client_secret);",
+							"console.log(\"Client 6 registration details\" + responseBody);",
+							"}",
+							"}",
+							"catch(e)",
+							"{",
+							"    console.log(\"Failed to execute client registration endpoint\" + e);",
+							"}",
+							"",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "oauth1",
+					"oauth1": [
+						{
+							"key": "consumerSecret",
+							"value": "{{secretkey}}",
+							"type": "string"
+						},
+						{
+							"key": "consumerKey",
+							"value": "{{accesskey}}",
+							"type": "string"
+						},
+						{
+							"key": "token",
+							"value": "",
+							"type": "string"
+						},
+						{
+							"key": "addParamsToHeader",
+							"value": true,
+							"type": "boolean"
+						},
+						{
+							"key": "addEmptyParamsToSign",
+							"value": false,
+							"type": "boolean"
+						},
+						{
+							"key": "signatureMethod",
+							"value": "HMAC-SHA1",
+							"type": "string"
+						},
+						{
+							"key": "version",
+							"value": "1.0",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{albURL}}/authorizationserver/as/v1/api/clients/{{clientType}}",
+					"host": [
+						"{{albURL}}"
+					],
+					"path": [
+						"authorizationserver",
+						"as",
+						"v1",
+						"api",
+						"clients",
+						"{{clientType}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "8. Generation of Token",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "70d9b400-d87d-44e6-aeb1-08573fefdcc8",
+						"type": "text/javascript",
+						"exec": [
+							"pm.environment.get(\"client_Id1\");",
+							"pm.environment.get(\"client_Secret1\");"
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "63c7d151-658e-4b9e-9ec4-db5bdc89eca6",
+						"type": "text/javascript",
+						"exec": [
+							"function parseJwt (token,expiresin) {",
+							"    var header = token.split('.')[0];",
+							"    var payload = token.split('.')[1];",
+							"            var headerdata = header.replace('-', '+').replace('_', '/');",
+							"            var payloaddata = payload.replace('-', '+').replace('_', '/');",
+							"    var headerstring = JSON.parse(atob(headerdata));",
+							"    var payloadstring = JSON.parse(atob(payloaddata));",
+							" var nbf = payloadstring.nbf;",
+							" var exp = payloadstring.exp;",
+							" var difference = exp - nbf;",
+							" tests[\"alg is RS512\"] = headerstring.alg === \"RS512\";",
+							" tests[\"exp-nbf is equal to expires_in\"] = (exp - nbf) === (expiresin);",
+							"}",
+							"try",
+							"{",
+							"var data = JSON.parse(responseBody);",
+							"var token = data.access_token;",
+							"var expiresin = data.expires_in;",
+							"parseJwt(token,expiresin);",
+							"tests[\"tokentype is Bearer\"] = data.token_type === \"Bearer\";",
+							"pm.environment.set(\"access_token\", data.access_token);",
+							"}",
+							"catch (e)",
+							"{",
+							"    console.log(\"error \" + e);",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "grant_type",
+							"value": "client_credentials",
+							"type": "text"
+						},
+						{
+							"key": "client_id",
+							"value": "{{client_Id1}}",
+							"type": "text"
+						},
+						{
+							"key": "client_secret",
+							"value": "{{client_Secret1}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{albURL}}/authorizationserver/as/v1/token",
+					"host": [
+						"{{albURL}}"
+					],
+					"path": [
+						"authorizationserver",
+						"as",
+						"v1",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "8.1. Generation of Token with invalid credentials",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "70d9b400-d87d-44e6-aeb1-08573fefdcc8",
+						"type": "text/javascript",
+						"exec": [
+							"pm.environment.get(\"client_Id1\");",
+							"pm.environment.get(\"client_Secret1\");"
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "cc3c2a88-0b9b-4567-965d-6e4ce13acd9d",
+						"type": "text/javascript",
+						"exec": [
+							"try",
+							"{",
+							"   tests[\"status code is not 200\"] = responseCode.code !== 200;",
+							"}",
+							"catch(e)",
+							"{",
+							"    console.log(\"Failed to execute access token with invalid credentials\" + e);",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "grant_type",
+							"value": "client_credentials",
+							"type": "text"
+						},
+						{
+							"key": "client_id",
+							"value": "{{client_Id1}}123",
+							"type": "text"
+						},
+						{
+							"key": "client_secret",
+							"value": "{{client_Secret1}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{albURL}}/authorizationserver/as/v1/token",
+					"host": [
+						"{{albURL}}"
+					],
+					"path": [
+						"authorizationserver",
+						"as",
+						"v1",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "8.2. Generation of Token with Scope",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "70d9b400-d87d-44e6-aeb1-08573fefdcc8",
+						"type": "text/javascript",
+						"exec": [
+							"pm.environment.get(\"client_Id1\");",
+							"pm.environment.get(\"client_Secret1\");"
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "be927ae5-395b-4f71-a852-671a72ddebc2",
+						"type": "text/javascript",
+						"exec": [
+							"function parseJwt (token,expiresin) {",
+							"    var header = token.split('.')[0];",
+							"    var payload = token.split('.')[1];",
+							"            var headerdata = header.replace('-', '+').replace('_', '/');",
+							"            var payloaddata = payload.replace('-', '+').replace('_', '/');",
+							"    var headerstring = JSON.parse(atob(headerdata));",
+							"    var payloadstring = JSON.parse(atob(payloaddata));",
+							" var nbf = payloadstring.nbf;",
+							" var exp = payloadstring.exp;",
+							" var difference = exp - nbf;",
+							" tests[\"alg is RS512\"] = headerstring.alg === \"RS512\";",
+							" tests[\"exp-nbf is equal to expires_in\"] = (exp - nbf) === (expiresin);",
+							"}",
+							"try",
+							"{",
+							"var data = JSON.parse(responseBody);",
+							"var token = data.access_token;",
+							"var expiresin = data.expires_in;",
+							"parseJwt(token,expiresin);",
+							"tests[\"tokentype is Bearer\"] = data.token_type === \"Bearer\";",
+							"}",
+							"catch (e)",
+							"{",
+							"    console.log(\"error \" + e);",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "grant_type",
+							"value": "client_credentials",
+							"type": "text"
+						},
+						{
+							"key": "client_id",
+							"value": "{{client_Id1}}",
+							"type": "text"
+						},
+						{
+							"key": "client_secret",
+							"value": "{{client_Secret1}}",
+							"type": "text"
+						},
+						{
+							"key": "scope",
+							"value": "sessionsvc tenantconfigsvc",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{albURL}}/authorizationserver/as/v1/token",
+					"host": [
+						"{{albURL}}"
+					],
+					"path": [
+						"authorizationserver",
+						"as",
+						"v1",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "8.3. Client registration endpoint with OAuth 2.0",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "ca0ade16-f0ce-42ec-b6be-85029740ad1e",
+						"type": "text/javascript",
+						"exec": [
+							"try",
+							"{",
+							"tests[\"Status code is not 200\"] = responseCode.code !== 200;",
+							"}",
+							"catch(e)",
+							"{",
+							"    console.log(\"Failed to execute client registration endpoint\" + e);",
+							"}",
+							"",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "x-infor-authorization",
+						"value": "Bearer {{access_token}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{albURL}}/authorizationserver/as/v1/api/clients/{{clientType}}",
+					"host": [
+						"{{albURL}}"
+					],
+					"path": [
+						"authorizationserver",
+						"as",
+						"v1",
+						"api",
+						"clients",
+						"{{clientType}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "9. Rotate Endpoint",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "c71087d7-8ce8-4d45-bf2f-46746c579a61",
+						"type": "text/javascript",
+						"exec": [
+							"try",
+							"{",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"}",
+							"catch(e)",
+							"{",
+							"    console.log(\"Failed to execute rotate endpoint\" + e);",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "oauth1",
+					"oauth1": [
+						{
+							"key": "consumerSecret",
+							"value": "{{secretkey}}",
+							"type": "string"
+						},
+						{
+							"key": "consumerKey",
+							"value": "{{accesskey}}",
+							"type": "string"
+						},
+						{
+							"key": "token",
+							"value": "",
+							"type": "string"
+						},
+						{
+							"key": "addParamsToHeader",
+							"value": true,
+							"type": "boolean"
+						},
+						{
+							"key": "addEmptyParamsToSign",
+							"value": false,
+							"type": "boolean"
+						},
+						{
+							"key": "signatureMethod",
+							"value": "HMAC-SHA1",
+							"type": "string"
+						},
+						{
+							"key": "version",
+							"value": "1.0",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{albURL}}/authorizationserver/as/v1/api/rotatejwk",
+					"host": [
+						"{{albURL}}"
+					],
+					"path": [
+						"authorizationserver",
+						"as",
+						"v1",
+						"api",
+						"rotatejwk"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "9.1. Rotate Endpoint with OAuth 2.0",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "c71087d7-8ce8-4d45-bf2f-46746c579a61",
+						"type": "text/javascript",
+						"exec": [
+							"try",
+							"{",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"}",
+							"catch(e)",
+							"{",
+							"    console.log(\"Failed to execute rotate endpoint\" + e);",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "x-infor-authorization",
+						"value": "Bearer {{access_token}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{albURL}}/authorizationserver/as/v1/api/rotatejwk",
+					"host": [
+						"{{albURL}}"
+					],
+					"path": [
+						"authorizationserver",
+						"as",
+						"v1",
+						"api",
+						"rotatejwk"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "9.2. Rotate Endpoint with invalid credentials",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "a297f881-93b1-40ea-bb65-3288f2789b13",
+						"type": "text/javascript",
+						"exec": [
+							"try",
+							"{",
+							"   tests[\"status code is not 200\"] = responseCode.code !== 200;",
+							"}",
+							"catch(e)",
+							"{",
+							"    console.log(\"Failed to execute rotate endpoint with invalid credentials\" + e);",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "oauth1",
+					"oauth1": [
+						{
+							"key": "consumerSecret",
+							"value": "{{secretkey}}1",
+							"type": "string"
+						},
+						{
+							"key": "consumerKey",
+							"value": "{{accesskey}}",
+							"type": "string"
+						},
+						{
+							"key": "token",
+							"value": "",
+							"type": "string"
+						},
+						{
+							"key": "addParamsToHeader",
+							"value": true,
+							"type": "boolean"
+						},
+						{
+							"key": "addEmptyParamsToSign",
+							"value": false,
+							"type": "boolean"
+						},
+						{
+							"key": "signatureMethod",
+							"value": "HMAC-SHA1",
+							"type": "string"
+						},
+						{
+							"key": "version",
+							"value": "1.0",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{albURL}}/authorizationserver}/as/v1/api/rotatejwk",
+					"host": [
+						"{{albURL}}"
+					],
+					"path": [
+						"authorizationserver}",
+						"as",
+						"v1",
+						"api",
+						"rotatejwk"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "10. Clean Up Endpoint",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "3cfb0c70-aa6c-4b83-956e-7eac71fe68e2",
+						"type": "text/javascript",
+						"exec": [
+							"try",
+							"{",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"}",
+							"catch(e)",
+							"{",
+							"    console.log(\"Failed to execute clean up endpoint\" + e);",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "oauth1",
+					"oauth1": [
+						{
+							"key": "consumerSecret",
+							"value": "{{secretkey}}",
+							"type": "string"
+						},
+						{
+							"key": "consumerKey",
+							"value": "{{accesskey}}",
+							"type": "string"
+						},
+						{
+							"key": "token",
+							"value": "",
+							"type": "string"
+						},
+						{
+							"key": "addParamsToHeader",
+							"value": true,
+							"type": "boolean"
+						},
+						{
+							"key": "addEmptyParamsToSign",
+							"value": false,
+							"type": "boolean"
+						},
+						{
+							"key": "signatureMethod",
+							"value": "HMAC-SHA1",
+							"type": "string"
+						},
+						{
+							"key": "version",
+							"value": "1.0",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{albURL}}/authorizationserver/as/v1/api/cleanup",
+					"host": [
+						"{{albURL}}"
+					],
+					"path": [
+						"authorizationserver",
+						"as",
+						"v1",
+						"api",
+						"cleanup"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "10.1. Clean Up Endpoint with OAuth 2.0",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "fbcabd7e-d2ae-402d-ae0a-6980c872d4eb",
+						"type": "text/javascript",
+						"exec": [
+							"try",
+							"{",
+							"tests[\"Status code is  200\"] = responseCode.code === 200;",
+							"}",
+							"catch(e)",
+							"{",
+							"    console.log(\"Failed to execute clean up endpoint\" + e);",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "x-infor-authorization",
+						"value": "Bearer {{access_token}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{albURL}}/authorizationserver/as/v1/api/cleanup",
+					"host": [
+						"{{albURL}}"
+					],
+					"path": [
+						"authorizationserver",
+						"as",
+						"v1",
+						"api",
+						"cleanup"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "10.2. Clean Up Endpoint with invalid credentials",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "e391ffb5-6dc4-4ede-af04-a9b37a547fb3",
+						"type": "text/javascript",
+						"exec": [
+							"try",
+							"{",
+							"   tests[\"status code is not 200\"] = responseCode.code !== 200;",
+							"}",
+							"catch(e)",
+							"{",
+							"    console.log(\"Failed to execute clean up endpoint with invalid credentials\" + e);",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "oauth1",
+					"oauth1": [
+						{
+							"key": "consumerSecret",
+							"value": "{{secretkey}}1",
+							"type": "string"
+						},
+						{
+							"key": "consumerKey",
+							"value": "{{accesskey}}",
+							"type": "string"
+						},
+						{
+							"key": "token",
+							"value": "",
+							"type": "string"
+						},
+						{
+							"key": "addParamsToHeader",
+							"value": true,
+							"type": "boolean"
+						},
+						{
+							"key": "addEmptyParamsToSign",
+							"value": false,
+							"type": "boolean"
+						},
+						{
+							"key": "signatureMethod",
+							"value": "HMAC-SHA1",
+							"type": "string"
+						},
+						{
+							"key": "version",
+							"value": "1.0",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{albURL}}/authorizationserver/as/v1/api/cleanup",
+					"host": [
+						"{{albURL}}"
+					],
+					"path": [
+						"authorizationserver",
+						"as",
+						"v1",
+						"api",
+						"cleanup"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "11. JWKS",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "0a755dd5-d0c9-441e-a094-7871a20798d6",
+						"type": "text/javascript",
+						"exec": [
+							"try",
+							"{",
+							"    if (responseCode.code === 200)",
+							"{",
+							"var data = JSON.parse(responseBody);",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"tests[\"Body contains kid\"] = responseBody.has(\"kid\");",
+							"tests[\"kid value is not null\"] = data.keys[0].kid !== (null);",
+							"",
+							"tests[\"Body contains kty\"] = responseBody.has(\"kty\");",
+							"tests[\"kty value is not null\"] = data.keys[0].kty !== (null);",
+							"",
+							"}",
+							"}",
+							"catch(e)",
+							"{",
+							"    console.log(\"Failed to execute jwks endpoint\" + e);",
+							"}",
+							"",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{albURL}}/authorizationserver/as/v1/jwk",
+					"host": [
+						"{{albURL}}"
+					],
+					"path": [
+						"authorizationserver",
+						"as",
+						"v1",
+						"jwk"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "11.1. JWKS (no. of character in kid value)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "70334edd-02f3-4267-a9dc-9c9bfa63c9a9",
+						"type": "text/javascript",
+						"exec": [
+							"try",
+							"{",
+							"    if (responseCode.code === 200)",
+							"{",
+							"    var data = JSON.parse(responseBody);",
+							"    var value=data.keys[0].kid;",
+							"    if(value.length<=4)",
+							"    {",
+							"       ",
+							"       tests[\"number of character in kid value is less than or equal to 4\"] = responseCode.code === 200;",
+							"    }",
+							"    ",
+							"}",
+							"}",
+							"catch(e)",
+							"{",
+							"    console.log(\"Failed to execute jwks endpoint\" + e);",
+							"    ",
+							"}",
+							"",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{albURL}}/authorizationserver/as/v1/jwk",
+					"host": [
+						"{{albURL}}"
+					],
+					"path": [
+						"authorizationserver",
+						"as",
+						"v1",
+						"jwk"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "12. Get all clients",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "04d6646b-01b2-46a8-95f8-da388a44bcf8",
+						"type": "text/javascript",
+						"exec": [
+							"try",
+							"{",
+							"    if (responseCode.code === 200)",
+							"{",
+							"var data = JSON.parse(responseBody);",
+							"var numberofclients = data.totalRecords;",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"tests[\"clientId is not null\"] = data.results[0].clientId !== (null);",
+							"tests[\"clientType is not null\"] = data.results[0].clientType !== (null);",
+							"tests[\"lastSuccessAttempt is not null\"] = data.results[0].lastSuccessAttempt !== undefined;",
+							"tests[\"lastFailedAttempt is not null\"] = data.results[0].lastFailedAttempt!== undefined;",
+							"tests[\"failedAttemptCount is not null\"] = data.results[0].failedAttemptCount !== (null);",
+							"tests[\"createdOn is not null\"] = data.results[0].createdOn !== (null);",
+							"tests[\"createdBy is not null\"] = data.results[0].createdBy !== (null);",
+							"tests[\"updatedBy is not null\"] = data.results[0].updatedBy !== (null);",
+							"pm.environment.set(\"client\", data.results[0].clientType);",
+							"pm.environment.set(\"clientId\", data.results[0].clientId);",
+							"pm.environment.set(\"numberofclients\", numberofclients);",
+							"}",
+							"}",
+							"catch(e)",
+							"{",
+							"    console.log(\"Failed to execute get all clients endpoint\" +e);",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "oauth1",
+					"oauth1": [
+						{
+							"key": "consumerSecret",
+							"value": "{{secretkey}}",
+							"type": "string"
+						},
+						{
+							"key": "consumerKey",
+							"value": "{{accesskey}}",
+							"type": "string"
+						},
+						{
+							"key": "token",
+							"value": "",
+							"type": "string"
+						},
+						{
+							"key": "addParamsToHeader",
+							"value": true,
+							"type": "boolean"
+						},
+						{
+							"key": "addEmptyParamsToSign",
+							"value": false,
+							"type": "boolean"
+						},
+						{
+							"key": "signatureMethod",
+							"value": "HMAC-SHA1",
+							"type": "string"
+						},
+						{
+							"key": "version",
+							"value": "1.0",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{albURL}}/authorizationserver/as/v1/api/admin/clients",
+					"host": [
+						"{{albURL}}"
+					],
+					"path": [
+						"authorizationserver",
+						"as",
+						"v1",
+						"api",
+						"admin",
+						"clients"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "12.1. Post method - Delete client with OAuth 2.0",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "0da8bd0d-4136-4143-aa48-8704119d7380",
+						"type": "text/javascript",
+						"exec": [
+							"pm.environment.get(\"client_Id1\");",
+							"pm.environment.get(\"access_token\");"
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "ba9cd961-1af6-4de5-864e-ded06756a372",
+						"type": "text/javascript",
+						"exec": [
+							"try",
+							"{",
+							"    if(responseCode.code === 200)",
+							"    {",
+							"    tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"    }",
+							"    else",
+							"    {",
+							"    console.log(\"ResponseCode\", responseCode.code);",
+							"    tests[\"Status code is not 200\"] = responseCode.code === 200;",
+							"    }",
+							"}",
+							"catch(e)",
+							"{",
+							"    console.log(\"Failed to delete a client with delete method\" + e);",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "oauth1",
+					"oauth1": [
+						{
+							"key": "consumerSecret",
+							"value": "{{secretkey}}",
+							"type": "string"
+						},
+						{
+							"key": "consumerKey",
+							"value": "{{accesskey}}",
+							"type": "string"
+						},
+						{
+							"key": "token",
+							"value": "",
+							"type": "string"
+						},
+						{
+							"key": "addParamsToHeader",
+							"value": true,
+							"type": "boolean"
+						},
+						{
+							"key": "addEmptyParamsToSign",
+							"value": false,
+							"type": "boolean"
+						},
+						{
+							"key": "signatureMethod",
+							"value": "HMAC-SHA1",
+							"type": "string"
+						},
+						{
+							"key": "version",
+							"value": "1.0",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "x-infor-Authorization",
+						"value": "Bearer {{access_token}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{albURL}}/authorizationserver/as/v1/api/clients/{{clientType}}/deleteclient/{{client_Id1}}",
+					"host": [
+						"{{albURL}}"
+					],
+					"path": [
+						"authorizationserver",
+						"as",
+						"v1",
+						"api",
+						"clients",
+						"{{clientType}}",
+						"deleteclient",
+						"{{client_Id1}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "12.2 Get all clients after deleting the client",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "218b97d3-b7d2-4cbe-b0be-52ec5e4e2bac",
+						"type": "text/javascript",
+						"exec": [
+							"try",
+							"{",
+							"    if (responseCode.code === 200)",
+							"{",
+							"var data = JSON.parse(responseBody);",
+							"var noc = pm.environment.get(\"numberofclients\");",
+							"var numberofclients1 = data.totalRecords;",
+							"const x = noc - numberofclients1;",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"tests[\"clientId is not null\"] = data.results[0].clientId !== (null);",
+							"tests[\"clientType is not null\"] = data.results[0].clientType !== (null);",
+							"tests[\"lastSuccessAttempt is not null\"] = data.results[0].lastSuccessAttempt !== undefined;",
+							"tests[\"lastFailedAttempt is not null\"] = data.results[0].lastFailedAttempt!== undefined;",
+							"tests[\"failedAttemptCount is not null\"] = data.results[0].failedAttemptCount !== (null);",
+							"tests[\"createdOn is not null\"] = data.results[0].createdOn !== (null);",
+							"tests[\"createdBy is not null\"] = data.results[0].createdBy !== (null);",
+							"tests[\"updatedBy is not null\"] = data.results[0].updatedBy !== (null);",
+							"",
+							"tests[\"numberofclients is reduced by 1\"]=x==1;",
+							"",
+							"}",
+							"}",
+							"catch(e)",
+							"{",
+							"    console.log(\"Failed to execute get all clients endpoint\" +e);",
+							"}"
+						]
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "5eb60983-f9cd-4932-9945-1ee0b840dcca",
+						"type": "text/javascript",
+						"exec": [
+							"pm.environment.get(\"numberofclients\");"
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "oauth1",
+					"oauth1": [
+						{
+							"key": "consumerSecret",
+							"value": "{{secretkey}}",
+							"type": "string"
+						},
+						{
+							"key": "consumerKey",
+							"value": "{{accesskey}}",
+							"type": "string"
+						},
+						{
+							"key": "token",
+							"value": "",
+							"type": "string"
+						},
+						{
+							"key": "addParamsToHeader",
+							"value": true,
+							"type": "boolean"
+						},
+						{
+							"key": "addEmptyParamsToSign",
+							"value": false,
+							"type": "boolean"
+						},
+						{
+							"key": "signatureMethod",
+							"value": "HMAC-SHA1",
+							"type": "string"
+						},
+						{
+							"key": "version",
+							"value": "1.0",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{albURL}}/authorizationserver/as/v1/api/admin/clients",
+					"host": [
+						"{{albURL}}"
+					],
+					"path": [
+						"authorizationserver",
+						"as",
+						"v1",
+						"api",
+						"admin",
+						"clients"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "13. Post method - Delete client",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "07577559-4e61-4cfd-9ecc-ae44364323d6",
+						"type": "text/javascript",
+						"exec": [
+							"pm.environment.get(\"client_Id1\");"
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "16f7e011-4711-46d0-833e-46989bf60729",
+						"type": "text/javascript",
+						"exec": [
+							"try",
+							"{",
+							"    if(responseCode.code === 200)",
+							"    {",
+							"    tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"    }",
+							"    else",
+							"    {",
+							"    console.log(\"ResponseCode\", responseCode.code);",
+							"     tests[\"Failed to delete a client with post method\"] = responseCode.code === 200;",
+							"    }",
+							"}",
+							"catch(e)",
+							"{",
+							"    console.log(\"Failed to delete a client with post method\" + e);",
+							"    tests[\"Failed to delete a client with post method\"] = responseCode.code != 200;",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "oauth1",
+					"oauth1": [
+						{
+							"key": "consumerSecret",
+							"value": "{{secretkey}}",
+							"type": "string"
+						},
+						{
+							"key": "consumerKey",
+							"value": "{{accesskey}}",
+							"type": "string"
+						},
+						{
+							"key": "token",
+							"value": "",
+							"type": "string"
+						},
+						{
+							"key": "addParamsToHeader",
+							"value": true,
+							"type": "boolean"
+						},
+						{
+							"key": "addEmptyParamsToSign",
+							"value": false,
+							"type": "boolean"
+						},
+						{
+							"key": "signatureMethod",
+							"value": "HMAC-SHA1",
+							"type": "string"
+						},
+						{
+							"key": "version",
+							"value": "1.0",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{albURL}}/authorizationserver/as/v1/api/clients/{{clientType}}/deleteclient/{{client_Id5}}",
+					"host": [
+						"{{albURL}}"
+					],
+					"path": [
+						"authorizationserver",
+						"as",
+						"v1",
+						"api",
+						"clients",
+						"{{clientType}}",
+						"deleteclient",
+						"{{client_Id5}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "14. Get clients based on service",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "1b9840e2-6be9-4e98-a9fb-d6d15fbe0aa9",
+						"type": "text/javascript",
+						"exec": [
+							"try",
+							"{",
+							"    if (responseCode.code === 200)",
+							"{",
+							"var data = JSON.parse(responseBody);",
+							"var n = ",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"tests[\"clientId is not null\"] = data.results[0].clientId !== (null);",
+							"tests[\"clientType is not null\"] = data.results[0].clientType !== (null);",
+							"tests[\"lastSuccessAttempt is not null\"] = data.results[0].lastSuccessAttempt !== undefined;",
+							"tests[\"lastFailedAttempt is not null\"] = data.results[0].lastFailedAttempt !== undefined;",
+							"tests[\"failedAttemptCount is not null\"] = data.results[0].failedAttemptCount !== (null);",
+							"tests[\"createdOn is not null\"] = data.results[0].createdOn !== (null);",
+							"tests[\"createdBy is not null\"] = data.results[0].createdBy !== (null);",
+							"tests[\"updatedBy is not null\"] = data.results[0].updatedBy !== (null);",
+							"}",
+							"}",
+							"catch(e)",
+							"{",
+							"    console.log(\"Failed to execute get clients based on clienttype\" +e);",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "oauth1",
+					"oauth1": [
+						{
+							"key": "consumerSecret",
+							"value": "{{secretkey}}",
+							"type": "string"
+						},
+						{
+							"key": "consumerKey",
+							"value": "{{accesskey}}",
+							"type": "string"
+						},
+						{
+							"key": "token",
+							"value": "",
+							"type": "string"
+						},
+						{
+							"key": "addParamsToHeader",
+							"value": true,
+							"type": "boolean"
+						},
+						{
+							"key": "addEmptyParamsToSign",
+							"value": false,
+							"type": "boolean"
+						},
+						{
+							"key": "signatureMethod",
+							"value": "HMAC-SHA1",
+							"type": "string"
+						},
+						{
+							"key": "version",
+							"value": "1.0",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{albURL}}/authorizationserver/as/v1/api/clients/{{clientType}}",
+					"host": [
+						"{{albURL}}"
+					],
+					"path": [
+						"authorizationserver",
+						"as",
+						"v1",
+						"api",
+						"clients",
+						"{{clientType}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "15. Get the client based on service type and client id",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "828425aa-b23e-4c5c-8faa-b07ae7559ff6",
+						"type": "text/javascript",
+						"exec": [
+							"pm.environment.get(\"client_Id2\");"
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "30ec240f-9824-4243-8873-1d1f7b6267c5",
+						"type": "text/javascript",
+						"exec": [
+							"try",
+							"{",
+							"    if (responseCode.code === 200)",
+							"{",
+							"var data = JSON.parse(responseBody);",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"tests[\"clientId is not null\"] = data.clientId !== (null);",
+							"tests[\"clientType is not null\"] = data.clientType !== (null);",
+							"tests[\"lastSuccessAttempt is not null\"] = data.lastSuccessAttempt !== undefined;",
+							"tests[\"lastFailedAttempt is not null\"] = data.lastFailedAttempt !== undefined;",
+							"tests[\"failedAttemptCount is not null\"] = data.failedAttemptCount !== (null);",
+							"tests[\"createdOn is not null\"] = data.createdOn !== (null);",
+							"tests[\"createdBy is not null\"] = data.createdBy !== (null);",
+							"tests[\"updatedBy is not null\"] = data.updatedBy !== (null);",
+							"}",
+							"}",
+							"catch(e)",
+							"{",
+							"    console.log(\"Failed to execute get clients based on clienttype and clientId\" +e);",
+							"    tests[\"Failed to execute get clients based on clienttype and clientId\"] = responseCode.code!== 200;",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "oauth1",
+					"oauth1": [
+						{
+							"key": "consumerSecret",
+							"value": "{{secretkey}}",
+							"type": "string"
+						},
+						{
+							"key": "consumerKey",
+							"value": "{{accesskey}}",
+							"type": "string"
+						},
+						{
+							"key": "token",
+							"value": "",
+							"type": "string"
+						},
+						{
+							"key": "addParamsToHeader",
+							"value": true,
+							"type": "boolean"
+						},
+						{
+							"key": "addEmptyParamsToSign",
+							"value": false,
+							"type": "boolean"
+						},
+						{
+							"key": "signatureMethod",
+							"value": "HMAC-SHA1",
+							"type": "string"
+						},
+						{
+							"key": "version",
+							"value": "1.0",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{albURL}}/authorizationserver/as/v1/api/clients/{{clientType}}/{{client_Id2}}",
+					"host": [
+						"{{albURL}}"
+					],
+					"path": [
+						"authorizationserver",
+						"as",
+						"v1",
+						"api",
+						"clients",
+						"{{clientType}}",
+						"{{client_Id2}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "16. Get the clients based on client Id",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "1eed9954-b851-41d8-9f5c-36ea1fc47a90",
+						"type": "text/javascript",
+						"exec": [
+							"pm.environment.get(\"client_Id2\");"
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "9021231b-3544-4e63-be85-fddadccc4c46",
+						"type": "text/javascript",
+						"exec": [
+							"try",
+							"{",
+							"    if (responseCode.code === 200)",
+							"{",
+							"var data = JSON.parse(responseBody);",
+							"var clientID = pm.environment.get(\"client_Id2\");",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"tests[\"clientId is not null\"] = data.clientId !== (null);",
+							"tests[\"clientType is not null\"] = data.clientType !== (null);",
+							"tests[\"lastSuccessAttempt is not null\"] = data.lastSuccessAttempt !== undefined;",
+							"tests[\"lastFailedAttempt is not null\"] = data.lastFailedAttempt!== undefined;",
+							"tests[\"failedAttemptCount is not null\"] = data.failedAttemptCount !== (null);",
+							"tests[\"createdOn is not null\"] = data.createdOn !== (null);",
+							"tests[\"createdBy is not null\"] = data.createdBy !== (null);",
+							"tests[\"updatedBy is not null\"] = data.updatedBy !== (null);",
+							"tests[\"clientId matches\"] = data.clientId === (clientID);",
+							"}",
+							"}",
+							"catch(e)",
+							"{",
+							"    console.log(\"Failed to execute get clients based on clientId\" +e);",
+							"     tests[\"Failed to execute get clients based on clientId\"] = responseCode.code!== 200;",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "oauth1",
+					"oauth1": [
+						{
+							"key": "consumerSecret",
+							"value": "{{secretkey}}",
+							"type": "string"
+						},
+						{
+							"key": "consumerKey",
+							"value": "{{accesskey}}",
+							"type": "string"
+						},
+						{
+							"key": "token",
+							"value": "",
+							"type": "string"
+						},
+						{
+							"key": "addParamsToHeader",
+							"value": true,
+							"type": "boolean"
+						},
+						{
+							"key": "addEmptyParamsToSign",
+							"value": false,
+							"type": "boolean"
+						},
+						{
+							"key": "signatureMethod",
+							"value": "HMAC-SHA1",
+							"type": "string"
+						},
+						{
+							"key": "version",
+							"value": "1.0",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{albURL}}/authorizationserver/as/v1/api/admin/clients/{{client_Id2}}",
+					"host": [
+						"{{albURL}}"
+					],
+					"path": [
+						"authorizationserver",
+						"as",
+						"v1",
+						"api",
+						"admin",
+						"clients",
+						"{{client_Id2}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "17. Delete a client by delete method With OAuth 2.0",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "a59c4bc7-8d39-433d-a539-60da31ecdae2",
+						"type": "text/javascript",
+						"exec": [
+							"pm.environment.get(\"client_Id2\");",
+							"pm.environment.get(\"access_token\");"
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "1b972894-14fb-4013-8571-5f053d6b59cc",
+						"type": "text/javascript",
+						"exec": [
+							"try",
+							"{",
+							"    if(responseCode.code=== 200)",
+							"    {",
+							"        tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"    }",
+							"    else",
+							"    {",
+							"    console.log(\"ResponseCode\", responseCode.code);",
+							"    tests[\"Failed to delete a client with delete method\"] = responseCode.code === 200;",
+							"    ",
+							"    }",
+							"}",
+							"catch(e)",
+							"{",
+							"    console.log(\"Failed to delete a client with delete method\" + e);",
+							"    tests[\"Failed to delete a client with delete method\"] = responseCode.code != 200;",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "oauth1",
+					"oauth1": [
+						{
+							"key": "consumerSecret",
+							"value": "{{secretkey}}",
+							"type": "string"
+						},
+						{
+							"key": "consumerKey",
+							"value": "{{accesskey}}",
+							"type": "string"
+						},
+						{
+							"key": "token",
+							"value": "",
+							"type": "string"
+						},
+						{
+							"key": "addParamsToHeader",
+							"value": true,
+							"type": "boolean"
+						},
+						{
+							"key": "addEmptyParamsToSign",
+							"value": false,
+							"type": "boolean"
+						},
+						{
+							"key": "signatureMethod",
+							"value": "HMAC-SHA1",
+							"type": "string"
+						},
+						{
+							"key": "version",
+							"value": "1.0",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "x-infor-authorization",
+						"value": "Bearer {{access_token}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{albURL}}/authorizationserver/as/v1/api/clients/{{clientType}}/{{client_Id2}}",
+					"host": [
+						"{{albURL}}"
+					],
+					"path": [
+						"authorizationserver",
+						"as",
+						"v1",
+						"api",
+						"clients",
+						"{{clientType}}",
+						"{{client_Id2}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "17.1. Delete a client by delete method",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "b1329846-5b7b-46e4-94bb-5a4c435b466e",
+						"type": "text/javascript",
+						"exec": [
+							"pm.environment.get(\"client_Id2\");"
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "7d446cd5-0a5f-4687-9227-6b59c9e1bcb5",
+						"type": "text/javascript",
+						"exec": [
+							"try",
+							"{",
+							"    if(responseCode.code=== 200)",
+							"    {",
+							"        tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"    }",
+							"    else",
+							"    {",
+							"    console.log(\"ResponseCode\", responseCode.code);",
+							"    tests[\"Failed to delete a client with delete method\"] = responseCode.code === 200;",
+							"    ",
+							"    }",
+							"}",
+							"catch(e)",
+							"{",
+							"    console.log(\"Failed to delete a client with delete method\" + e);",
+							"    tests[\"Failed to delete a client with delete method\"] = responseCode.code != 200;",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "oauth1",
+					"oauth1": [
+						{
+							"key": "consumerSecret",
+							"value": "{{secretkey}}",
+							"type": "string"
+						},
+						{
+							"key": "consumerKey",
+							"value": "{{accesskey}}",
+							"type": "string"
+						},
+						{
+							"key": "token",
+							"value": "",
+							"type": "string"
+						},
+						{
+							"key": "addParamsToHeader",
+							"value": true,
+							"type": "boolean"
+						},
+						{
+							"key": "addEmptyParamsToSign",
+							"value": false,
+							"type": "boolean"
+						},
+						{
+							"key": "signatureMethod",
+							"value": "HMAC-SHA1",
+							"type": "string"
+						},
+						{
+							"key": "version",
+							"value": "1.0",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{albURL}}/authorizationserver/as/v1/api/clients/{{clientType}}/{{client_Id6}}",
+					"host": [
+						"{{albURL}}"
+					],
+					"path": [
+						"authorizationserver",
+						"as",
+						"v1",
+						"api",
+						"clients",
+						"{{clientType}}",
+						"{{client_Id6}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "18. Get the clients based on client Id after deleting the client",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "1eed9954-b851-41d8-9f5c-36ea1fc47a90",
+						"type": "text/javascript",
+						"exec": [
+							"pm.environment.get(\"client_Id2\");"
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "34ad2445-085f-41c5-a4f3-58b7a89c4c59",
+						"type": "text/javascript",
+						"exec": [
+							"try",
+							"{",
+							"    if (responseCode.code === 200)",
+							"{",
+							"",
+							"tests[\"No responseBody\"] = !(responseBody.has(\"clientId\"));",
+							"}",
+							"}",
+							"catch(e)",
+							"{",
+							"    console.log(\"Failed to execute get clients based on clientId\" +e);",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "oauth1",
+					"oauth1": [
+						{
+							"key": "consumerSecret",
+							"value": "{{secretkey}}",
+							"type": "string"
+						},
+						{
+							"key": "consumerKey",
+							"value": "{{accesskey}}",
+							"type": "string"
+						},
+						{
+							"key": "token",
+							"value": "",
+							"type": "string"
+						},
+						{
+							"key": "addParamsToHeader",
+							"value": true,
+							"type": "boolean"
+						},
+						{
+							"key": "addEmptyParamsToSign",
+							"value": false,
+							"type": "boolean"
+						},
+						{
+							"key": "signatureMethod",
+							"value": "HMAC-SHA1",
+							"type": "string"
+						},
+						{
+							"key": "version",
+							"value": "1.0",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{albURL}}/authorizationserver/as/v1/api/admin/clients/{{client_Id2}}",
+					"host": [
+						"{{albURL}}"
+					],
+					"path": [
+						"authorizationserver",
+						"as",
+						"v1",
+						"api",
+						"admin",
+						"clients",
+						"{{client_Id2}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "19. Paging on get all clients based on service",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "36664450-4082-452b-b423-9714f2c1b880",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "79c2df6a-52c8-4e47-927e-51e11a123d4a",
+						"type": "text/javascript",
+						"exec": [
+							"try",
+							"{",
+							"    if (responseCode.code === 200)",
+							"{",
+							"var data = JSON.parse(responseBody);",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"tests[\"clientId is not null\"] = data.results[0].clientId !== (null);",
+							"tests[\"clientType is not null\"] = data.results[0].clientType !== (null);",
+							"tests[\"lastSuccessAttempt is not null\"] = data.results[0].lastSuccessAttempt !== undefined;",
+							"tests[\"lastFailedAttempt is not null\"] = data.results[0].lastFailedAttempt !== undefined;",
+							"tests[\"failedAttemptCount is not null\"] = data.results[0].failedAttemptCount !== (null);",
+							"tests[\"createdOn is not null\"] = data.results[0].createdOn !== (null);",
+							"tests[\"createdBy is not null\"] = data.results[0].createdBy !== (null);",
+							"tests[\"updatedBy is not null\"] = data.results[0].updatedBy !== (null);",
+							"}",
+							"}",
+							"catch(e)",
+							"{",
+							"    console.log(\"Failed to execute pagination endpoint based on service\" +e);",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "oauth1",
+					"oauth1": [
+						{
+							"key": "consumerSecret",
+							"value": "{{secretkey}}",
+							"type": "string"
+						},
+						{
+							"key": "consumerKey",
+							"value": "{{accesskey}}",
+							"type": "string"
+						},
+						{
+							"key": "token",
+							"value": "",
+							"type": "string"
+						},
+						{
+							"key": "addParamsToHeader",
+							"value": true,
+							"type": "boolean"
+						},
+						{
+							"key": "addEmptyParamsToSign",
+							"value": false,
+							"type": "boolean"
+						},
+						{
+							"key": "signatureMethod",
+							"value": "HMAC-SHA1",
+							"type": "string"
+						},
+						{
+							"key": "version",
+							"value": "1.0",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{albURL}}/authorizationserver/as/v1/api/clients/{{clientType}}/?size=10&page=0",
+					"host": [
+						"{{albURL}}"
+					],
+					"path": [
+						"authorizationserver",
+						"as",
+						"v1",
+						"api",
+						"clients",
+						"{{clientType}}",
+						""
+					],
+					"query": [
+						{
+							"key": "size",
+							"value": "10"
+						},
+						{
+							"key": "page",
+							"value": "0"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "20. Paging get all clients",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"try",
+							"{",
+							"    if (responseCode.code === 200)",
+							"{",
+							"var data = JSON.parse(responseBody);",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"tests[\"clientId is not null\"] = data.results[0].clientId !== (null);",
+							"tests[\"clientType is not null\"] = data.results[0].clientType !== (null);",
+							"tests[\"lastSuccessAttempt is not null\"] = data.results[0].lastSuccessAttempt !== undefined;",
+							"tests[\"lastFailedAttempt is not null\"] = data.results[0].lastFailedAttempt !== undefined;",
+							"tests[\"failedAttemptCount is not null\"] = data.results[0].failedAttemptCount !== (null);",
+							"tests[\"createdOn is not null\"] = data.results[0].createdOn !== (null);",
+							"tests[\"createdBy is not null\"] = data.results[0].createdBy !== (null);",
+							"tests[\"updatedBy is not null\"] = data.results[0].updatedBy !== (null);",
+							"}",
+							"}",
+							"catch(e)",
+							"{",
+							"    console.log(\"Failed to execute pagination endpoint of all clients\" +e);",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "oauth1",
+					"oauth1": [
+						{
+							"key": "consumerSecret",
+							"value": "{{secretkey}}",
+							"type": "string"
+						},
+						{
+							"key": "consumerKey",
+							"value": "{{accesskey}}",
+							"type": "string"
+						},
+						{
+							"key": "token",
+							"value": "",
+							"type": "string"
+						},
+						{
+							"key": "addParamsToHeader",
+							"value": true,
+							"type": "boolean"
+						},
+						{
+							"key": "addEmptyParamsToSign",
+							"value": false,
+							"type": "boolean"
+						},
+						{
+							"key": "signatureMethod",
+							"value": "HMAC-SHA1",
+							"type": "string"
+						},
+						{
+							"key": "version",
+							"value": "1.0",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{albURL}}/authorizationserver/as/v1/api/admin/clients/?size=10&page=0",
+					"host": [
+						"{{albURL}}"
+					],
+					"path": [
+						"authorizationserver",
+						"as",
+						"v1",
+						"api",
+						"admin",
+						"clients",
+						""
+					],
+					"query": [
+						{
+							"key": "size",
+							"value": "10"
+						},
+						{
+							"key": "page",
+							"value": "0"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "21. Get all the services",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "9332c7a0-7daf-4d26-b498-823ce8a78c18",
+						"type": "text/javascript",
+						"exec": [
+							"try",
+							"{",
+							"    tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"     var data = JSON.parse(responseBody);",
+							"    var obj = data.services;",
+							"    var service = obj.adminsvc;",
+							"    var DSurl = service.url;",
+							"    pm.environment.set(\"DSurl\", DSurl);",
+							"    console.log(responseBody);",
+							"    console.log(DSurl);",
+							"}",
+							"catch(e)",
+							"{",
+							"    console.log(\"Failed to execute get all the services\" + e);",
+							"}",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{albURL}}/authorizationserver/ds/v1/endpoints",
+					"host": [
+						"{{albURL}}"
+					],
+					"path": [
+						"authorizationserver",
+						"ds",
+						"v1",
+						"endpoints"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "22. Creation or Updation of a service - Discovery",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "bc187e1f-5e1e-46f7-95ad-b1fd4c4e381e",
+						"type": "text/javascript",
+						"exec": [
+							"pm.environment.get(\"DSurl\");"
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "3b64b1cb-1fef-49c9-b9d5-b78b66b5d29d",
+						"type": "text/javascript",
+						"exec": [
+							"try",
+							"{",
+							"    if (responseCode.code === 200)",
+							"{",
+							"var data = JSON.parse(responseBody);",
+							"var DiscoveryServiceURL = pm.environment.get(\"DSurl\");",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"tests[\"Body contains serviceId\"] = responseBody.has(\"serviceId\");",
+							"tests[\"Body contains url\"] = responseBody.has(\"url\");",
+							"tests[\"serviceId is not null\"] = data.serviceId !== (null);",
+							"tests[\"url is not null\"] = data.url !== (null);",
+							"console.log(\"reponse\" + responseBody);",
+							"}",
+							"}",
+							"catch(e)",
+							"{",
+							"    console.log(\"Failed to execute creation or updation of service\" + e);",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "oauth1",
+					"oauth1": [
+						{
+							"key": "consumerSecret",
+							"value": "{{secretkey}}",
+							"type": "string"
+						},
+						{
+							"key": "consumerKey",
+							"value": "{{accesskey}}",
+							"type": "string"
+						},
+						{
+							"key": "token",
+							"value": "",
+							"type": "string"
+						},
+						{
+							"key": "addParamsToHeader",
+							"value": true,
+							"type": "boolean"
+						},
+						{
+							"key": "addEmptyParamsToSign",
+							"value": false,
+							"type": "boolean"
+						},
+						{
+							"key": "signatureMethod",
+							"value": "HMAC-SHA1",
+							"type": "string"
+						},
+						{
+							"key": "version",
+							"value": "1.0",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"url\":\"{{DSurl}}\"\n}\n"
+				},
+				"url": {
+					"raw": "{{albURL}}/authorizationserver/ds/v1/api/services/{{clientType}}",
+					"host": [
+						"{{albURL}}"
+					],
+					"path": [
+						"authorizationserver",
+						"ds",
+						"v1",
+						"api",
+						"services",
+						"{{clientType}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "22.1. Creation or Updation of a service - Discovery  with invalid credentials",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "bc187e1f-5e1e-46f7-95ad-b1fd4c4e381e",
+						"type": "text/javascript",
+						"exec": [
+							"pm.environment.get(\"DSurl\");"
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "f0a470d4-cf3b-4238-b2ff-fe6033641dd6",
+						"type": "text/javascript",
+						"exec": [
+							"try",
+							"{",
+							"    if (responseCode.code !== 200)",
+							"{",
+							"tests[\"Status code is 401\"] = responseCode.code !== 200;",
+							"tests[\"Body doesn't contains serviceId\"] = !(responseBody.has(\"serviceId\"));",
+							"tests[\"Body doesn't contains url\"] = !(responseBody.has(\"url\"));",
+							"}",
+							"}",
+							"catch(e)",
+							"{",
+							"    console.log(\"Failed to execute creation or updation of service\" + e);",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "oauth1",
+					"oauth1": [
+						{
+							"key": "consumerSecret",
+							"value": "{{secretkey}}1",
+							"type": "string"
+						},
+						{
+							"key": "consumerKey",
+							"value": "{{accesskey}}",
+							"type": "string"
+						},
+						{
+							"key": "token",
+							"value": "",
+							"type": "string"
+						},
+						{
+							"key": "addParamsToHeader",
+							"value": true,
+							"type": "boolean"
+						},
+						{
+							"key": "addEmptyParamsToSign",
+							"value": false,
+							"type": "boolean"
+						},
+						{
+							"key": "signatureMethod",
+							"value": "HMAC-SHA1",
+							"type": "string"
+						},
+						{
+							"key": "version",
+							"value": "1.0",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"url\":\"{{DSurl}}\"\n}\n"
+				},
+				"url": {
+					"raw": "{{albURL}}/authorizationserver/ds/v1/api/services/{{clientType}}",
+					"host": [
+						"{{albURL}}"
+					],
+					"path": [
+						"authorizationserver",
+						"ds",
+						"v1",
+						"api",
+						"services",
+						"{{clientType}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "23. Get the details of the service",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "86079bba-8600-46da-bc94-bbbcbfb43948",
+						"type": "text/javascript",
+						"exec": [
+							"setTimeout(function(){}, 20000);",
+							"pm.environment.get(\"DSurl\");",
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "7dcbda34-05a9-48e2-acae-2fd707681163",
+						"type": "text/javascript",
+						"exec": [
+							"try",
+							"{",
+							"    if(responseCode.code===200)",
+							"    {",
+							"        tests[\"Status code is 200\"]= responseCode.code===200;",
+							"        tests[\"Body contains url\"]= responseBody.has(\"url\");",
+							"        tests[\"url is not null\"]= responseBody.has(\"url\")!== null;",
+							"    }",
+							"    ",
+							"}",
+							"catch(e)",
+							"{",
+							"   console.log(\"Failed to execute \"+e); ",
+							"   tests[\"Failed to execute\"] = responseCode.code !== 200;",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "oauth1",
+					"oauth1": [
+						{
+							"key": "consumerSecret",
+							"value": "{{secretkey}}",
+							"type": "string"
+						},
+						{
+							"key": "consumerKey",
+							"value": "{{accesskey}}",
+							"type": "string"
+						},
+						{
+							"key": "token",
+							"value": "",
+							"type": "string"
+						},
+						{
+							"key": "addParamsToHeader",
+							"value": true,
+							"type": "boolean"
+						},
+						{
+							"key": "addEmptyParamsToSign",
+							"value": false,
+							"type": "boolean"
+						},
+						{
+							"key": "signatureMethod",
+							"value": "HMAC-SHA1",
+							"type": "string"
+						},
+						{
+							"key": "version",
+							"value": "1.0",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"url\":\"{{DSurl}}\"\n}\n"
+				},
+				"url": {
+					"raw": "{{albURL}}/authorizationserver/ds/v1/api/services/{{clientType}}",
+					"host": [
+						"{{albURL}}"
+					],
+					"path": [
+						"authorizationserver",
+						"ds",
+						"v1",
+						"api",
+						"services",
+						"{{clientType}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "23.1. Get the details of the service with invalid credentials",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "c0e38923-2661-4cef-95bf-ff54ecfb3283",
+						"type": "text/javascript",
+						"exec": [
+							"pm.environment.get(\"DSurl\");"
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "c0bd9d33-959b-42bb-b524-9c6defb9d037",
+						"type": "text/javascript",
+						"exec": [
+							"try",
+							"{",
+							"if (responseCode.code !== 200)",
+							"{",
+							"tests[\"Status code is 401\"] = responseCode.code !== 200;",
+							"tests[\"url doen't exists\"] = !(responseBody.has(\"url\"));",
+							"}",
+							"}",
+							"catch(e)",
+							"{",
+							"    console.log(\"Failed to execute get the details of the service\" + e);",
+							"}",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "oauth1",
+					"oauth1": [
+						{
+							"key": "consumerSecret",
+							"value": "{{secretkey}}1",
+							"type": "string"
+						},
+						{
+							"key": "consumerKey",
+							"value": "{{accesskey}}",
+							"type": "string"
+						},
+						{
+							"key": "token",
+							"value": "",
+							"type": "string"
+						},
+						{
+							"key": "addParamsToHeader",
+							"value": true,
+							"type": "boolean"
+						},
+						{
+							"key": "addEmptyParamsToSign",
+							"value": false,
+							"type": "boolean"
+						},
+						{
+							"key": "signatureMethod",
+							"value": "HMAC-SHA1",
+							"type": "string"
+						},
+						{
+							"key": "version",
+							"value": "1.0",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"url\":\"{{DSurl}}\"\n}\n"
+				},
+				"url": {
+					"raw": "{{albURL}}/authorizationserver/ds/v1/api/services/{{clientType}}",
+					"host": [
+						"{{albURL}}"
+					],
+					"path": [
+						"authorizationserver",
+						"ds",
+						"v1",
+						"api",
+						"services",
+						"{{clientType}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Client registration with No Auth",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "8a0ec8b2-f813-4f6d-85de-edabbc4ecb2a",
+						"type": "text/javascript",
+						"exec": [
+							"try",
+							"{",
+							"tests[\"Status code shouldn't be 200\"] = responseCode.code !== 200;",
+							"}",
+							"catch(e)",
+							"{",
+							"    console.log(\"Able to create a client with albURL (NoAuth)\" + e);",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{albURL}}/authorizationserver/as/v1/api/clients/{{clientType}}",
+					"host": [
+						"{{albURL}}"
+					],
+					"path": [
+						"authorizationserver",
+						"as",
+						"v1",
+						"api",
+						"clients",
+						"{{clientType}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get clients with albURL with No Auth",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "90f7daf6-135b-47f8-a2cd-454335dc1f44",
+						"type": "text/javascript",
+						"exec": [
+							"try",
+							"{",
+							"tests[\"Status code shouldn't be 200\"] = responseCode.code !== 200;",
+							"}",
+							"catch(e)",
+							"{",
+							"    console.log(\"Able to perform CRUD operations with albURL (NoAuth)\" + e);",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{albURL}}/authorizationserver/as/v1/api/clients/{{clientType}}",
+					"host": [
+						"{{albURL}}"
+					],
+					"path": [
+						"authorizationserver",
+						"as",
+						"v1",
+						"api",
+						"clients",
+						"{{clientType}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get clients with albURL based on client type and client id with NoAuth",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "b2a0303b-f750-476f-abca-7f8dfdb03c8b",
+						"type": "text/javascript",
+						"exec": [
+							"try",
+							"{",
+							"tests[\"Status code shouldn't be 200\"] = responseCode.code !== 200;",
+							"}",
+							"catch(e)",
+							"{",
+							"    console.log(\"Able to perform CRUD operations with albURL (NoAuth)\" + e);",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{albURL}}/authorizationserver/as/v1/api/clients/{{clientType}}/{{client_Id3}}",
+					"host": [
+						"{{albURL}}"
+					],
+					"path": [
+						"authorizationserver",
+						"as",
+						"v1",
+						"api",
+						"clients",
+						"{{clientType}}",
+						"{{client_Id3}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "albURL Rotate with No Auth",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "3a20453f-a888-4b40-9c96-e53067abf27e",
+						"type": "text/javascript",
+						"exec": [
+							"try",
+							"{",
+							"tests[\"Status code shouldn't be 200\"] = responseCode.code !== 200;",
+							"}",
+							"catch(e)",
+							"{",
+							"    console.log(\"Able to Execute Rotate with albURL (NoAuth)\" + e);",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{albURL}}/authorizationserver/as/v1/api/rotatejwk",
+					"host": [
+						"{{albURL}}"
+					],
+					"path": [
+						"authorizationserver",
+						"as",
+						"v1",
+						"api",
+						"rotatejwk"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "albURL cleanup with NoAuth",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "f85bba8d-f71d-4e96-933b-cd40729f6371",
+						"type": "text/javascript",
+						"exec": [
+							"try",
+							"{",
+							"tests[\"Status code shouldn't be 200\"] = responseCode.code !== 200;",
+							"}",
+							"catch(e)",
+							"{",
+							"    console.log(\"Able to Execute Cleanup with albURL (NoAuth)\" + e);",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{albURL}}/authorizationserver/as/v1/api/cleanup",
+					"host": [
+						"{{albURL}}"
+					],
+					"path": [
+						"authorizationserver",
+						"as",
+						"v1",
+						"api",
+						"cleanup"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "albURL Post Discoverservice URL shouldn't work with NoAuth",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "c22c158a-2d1a-4fd9-a63c-273cd3abfd97",
+						"type": "text/javascript",
+						"exec": [
+							"pm.environment.get(\"DSurl\");"
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "dfbfe285-2e5a-4877-89d9-b03c86f476cb",
+						"type": "text/javascript",
+						"exec": [
+							"try",
+							"{",
+							"tests[\"Status code shouldn't be 200\"] = responseCode.code !== 200;",
+							"}",
+							"catch(e)",
+							"{",
+							"    console.log(\"able to post the discovery service url with albURL (NoAuth)\" + e);",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"url\":\"{{DSurl}}\"\n}\n"
+				},
+				"url": {
+					"raw": "{{albURL}}/authorizationserver/ds/v1/api/services/{{clientType}}",
+					"host": [
+						"{{albURL}}"
+					],
+					"path": [
+						"authorizationserver",
+						"ds",
+						"v1",
+						"api",
+						"services",
+						"{{clientType}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "albURL Get Discoverservice URL shouldn't work with NoAuth",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "c22c158a-2d1a-4fd9-a63c-273cd3abfd97",
+						"type": "text/javascript",
+						"exec": [
+							"pm.environment.get(\"DSurl\");"
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "39905591-9d95-4efe-b89f-0679794cac71",
+						"type": "text/javascript",
+						"exec": [
+							"try",
+							"{",
+							"tests[\"Status code shouldn't be 200\"] = responseCode.code !== 200;",
+							"}",
+							"catch(e)",
+							"{",
+							"    console.log(\"able to get the discovery service url with albURL (NoAuth)\" + e);",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"url\":\"{{DSurl}}\"\n}\n"
+				},
+				"url": {
+					"raw": "{{albURL}}/authorizationserver/ds/v1/api/services/{{clientType}}",
+					"host": [
+						"{{albURL}}"
+					],
+					"path": [
+						"authorizationserver",
+						"ds",
+						"v1",
+						"api",
+						"services",
+						"{{clientType}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": " Delete a client with albURL (NoAuth)",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "866f71ab-3eeb-438f-b716-a9bd51f6c890",
+						"type": "text/javascript",
+						"exec": [
+							"pm.environment.get(\"client_Id2\");"
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "5b1b1b91-623e-4770-96f6-95db280ac6ab",
+						"type": "text/javascript",
+						"exec": [
+							"try",
+							"{",
+							"tests[\"Status code is not 200\"] = responseCode.code !== 200;",
+							"console.log(\"ResponseCode\", responseCode.code);",
+							"}",
+							"catch(e)",
+							"{",
+							"    console.log(\"Able to Delete a client with albURL (NoAuth)\" + e);",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{albURL}}/authorizationserver/as/v1/api/clients/{{clientType}}/{{client_Id2}}",
+					"host": [
+						"{{albURL}}"
+					],
+					"path": [
+						"authorizationserver",
+						"as",
+						"v1",
+						"api",
+						"clients",
+						"{{clientType}}",
+						"{{client_Id2}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete a client with albURL (NoAuth) - Post method",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "512e1c95-bd69-44f7-aa78-3b0967b4aa3f",
+						"type": "text/javascript",
+						"exec": [
+							"pm.environment.get(\"client_Id1\");"
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "a229d8b0-48c2-464d-8ee1-f071b7aac3b0",
+						"type": "text/javascript",
+						"exec": [
+							"try",
+							"{",
+							"tests[\"Status code is not 200\"] = responseCode.code !== 200;",
+							"console.log(\"ResponseCode\", responseCode.code);",
+							"}",
+							"catch(e)",
+							"{",
+							"    console.log(\"Able to Delete a client with albURL (NoAuth)\" + e);",
+							"}"
+						]
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{albURL}}/authorizationserver/as/v1/api/clients/{{clientType}}/deleteclient/{{client_Id1}}",
+					"host": [
+						"{{albURL}}"
+					],
+					"path": [
+						"authorizationserver",
+						"as",
+						"v1",
+						"api",
+						"clients",
+						"{{clientType}}",
+						"deleteclient",
+						"{{client_Id1}}"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
